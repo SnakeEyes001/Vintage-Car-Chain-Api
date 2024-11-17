@@ -4,7 +4,7 @@ import * as crypto from 'crypto';
 import { AdminOprService } from '../admin-opr/admin-opr.service';
 import { CreateUserDto } from './dto/create-user-dto';
 import { CreateAssetDto } from './dto/create-asset-dto';
-import { UpdateAssetDto } from './dto/update-asset-dto';
+import { AddDocumentsToAssetDto } from './dto/add-docs-dto';
 import { TransferRequestDto } from './dto/transfer-request-dto';
 import { UsersService } from '../users/users.service';
 import { UserSessionService } from '../user-session/user-session.service';
@@ -15,6 +15,9 @@ import { RedisCacheService } from '../redis-cache/redis-cache.service';
 import { MspOrgs, walletBasePath } from 'src/utils/Constants';
 import { buildWallet } from 'src/utils/AppUtil';
 import { parse } from 'path';
+import { AuthService } from '../auth/auth.service';
+import { AddPictureDto } from './dto/add-picture-dto';
+import { IpfsService } from '../ipfs/ipfs.service';
 
 @Injectable()
 export class BlockchainService {
@@ -29,6 +32,8 @@ export class BlockchainService {
     private passwordService: PasswordService,
     private hashService: HashService,
     private redisCacheService: RedisCacheService,
+    private authService: AuthService,
+    private ipfsService: IpfsService,
   ) {
     //this.contractOrg1 = this.adminOprService.getChainCodeForOrgUser('Org1');
     //this.contractOrg2 = this.adminOprService.getChainCodeForOrgUser('Org2');
@@ -49,9 +54,9 @@ export class BlockchainService {
     return contract; //org === 'Org1' ? this.contractOrg1 : this.contractOrg2;
   }
 
-  async initLedger(org: string = 'Org1') {
+  async initLedger() {
     try {
-      const contract = await this.getContract(org);
+      const contract = await this.getContract('Org1');
 
       // Soumission de la transaction pour initialiser le registre
       const result = await contract.submitTransaction('InitLedger');
@@ -78,7 +83,7 @@ export class BlockchainService {
   async createUserTMP(req: Request) {
     try {
       const body = req.body;
-      console.log('body', body);
+      //console.log('body', body);
 
       const code = this.generateConfirmationCode();
       this.userSessionService.setSession(req, 'user', body);
@@ -110,11 +115,11 @@ export class BlockchainService {
   async createFinalProfile(req: Request) {
     try {
       const codeFromRequest = req.body.code;
-      console.log('code request :', codeFromRequest);
+      //console.log('code request :', codeFromRequest);
 
       const userFromSession = this.userSessionService.getSession(req, 'user');
       const codeFromSession = this.userSessionService.getSession(req, 'code');
-      console.log('code session :', codeFromSession);
+      //console.log('code session :', codeFromSession);
       if (codeFromRequest === codeFromSession) {
         const passAleatoire = await this.passwordService.generatePassword();
 
@@ -159,6 +164,16 @@ export class BlockchainService {
       }
     } catch (error) {
       console.log('error :', error);
+    }
+  }
+
+  async logInToApp(req: Request): Promise<any> {
+    try {
+      const { email, passowrd } = req.body;
+      const result = await this.authService.verificationLogin(email);
+      return result;
+    } catch (Error) {
+      console.error('error', Error);
     }
   }
 
@@ -293,37 +308,99 @@ export class BlockchainService {
     }
   }
 
-  async updateAsset(org: string, updateAssetDto: UpdateAssetDto) {
+  async AddPictureToAsset(addPictureDto: AddPictureDto) {
     try {
-      const contract = await this.getContract(org);
-      const {
-        id,
-        brand,
-        model,
-        carInfos,
-        imageUrl,
-        documents,
-        owner,
-        userHash,
-      } = updateAssetDto;
+      const contract = await this.getContract('Org1');
+      const asset = await this.readAsset('Org1', addPictureDto.assetId);
+      // Décodage de la réponse en JSON pour un format plus lisible
+      const assetData = JSON.parse(asset.toString());
 
-      // Soumission de la transaction pour mettre à jour l'actif avec les informations fournies
-      const result = await contract.submitTransaction(
-        'UpdateAsset',
-        id,
-        brand,
-        model,
-        JSON.stringify(carInfos), // Encodage JSON pour les objets complexes
-        imageUrl,
-        JSON.stringify(documents), // Encodage JSON pour les documents
-        owner,
-        userHash,
+      if (assetData) {
+        const { assetId, brand, model, carInfos, imageUrl, documents, owner } =
+          addPictureDto;
+        // Soumission de la transaction pour mettre à jour l'actif avec les informations fournies
+        const result = await contract.submitTransaction(
+          'UpdateAsset',
+          assetId,
+          brand,
+          model,
+          JSON.stringify(carInfos), // Encodage JSON pour les objets complexes
+          imageUrl,
+          JSON.stringify(documents), // Encodage JSON pour les documents
+          owner,
+        );
+
+        // Décoder le résultat pour vérifier la mise à jour
+        const updatedAssetData = JSON.parse(result.toString('utf8'));
+
+        return { success: true, updatedAssetData };
+      }
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour de l’actif :', error);
+      return {
+        error: "Échec de la mise à jour de l'actif",
+        details: error.message,
+      };
+    }
+  }
+
+  async addDocumentsToCar(
+    addDocumentsToAssetDto: AddDocumentsToAssetDto,
+    files: any,
+  ) {
+    try {
+      const contract = await this.getContract('Org1');
+      const asset = await this.readAsset(
+        'Org1',
+        addDocumentsToAssetDto.assetId,
       );
+      // Décodage de la réponse en JSON pour un format plus lisible
+      const assetData = JSON.parse(asset.toString());
+      const { assetId, brand, model, carInfos, imageUrl, documents, owner } =
+        addDocumentsToAssetDto;
 
-      // Décoder le résultat pour vérifier la mise à jour
-      const updatedAssetData = JSON.parse(result.toString('utf8'));
+      if (assetData) {
+        // asset json
+        //const assetJson = JSON.parse(assetData);
+        const assetDocumentJson = JSON.parse(documents);
 
-      return { success: true, updatedAssetData };
+        //extract the files data
+        const doc1Data = files.cidDoc1;
+        const doc2Data = files.cidDoc2;
+        const doc3Data = files.cidDoc3;
+        const doc4Data = files.cidDoc4;
+
+        //Call IPFS service
+        const cidDoc1 = await this.ipfsService.uploadFile(doc1Data);
+        console.log('cid1 :', cidDoc1);
+        const cidDoc2 = await this.ipfsService.uploadFile(doc2Data);
+        console.log('cid2 :', cidDoc2);
+        const cidDoc3 = await this.ipfsService.uploadFile(doc3Data);
+        console.log('cid3 :', cidDoc3);
+        const cidDoc4 = await this.ipfsService.uploadFile(doc4Data);
+        console.log('cid4 :', cidDoc4);
+
+        //Affect the cid of documetns
+        assetDocumentJson.cidDoc1 = cidDoc1;
+        assetDocumentJson.cidDoc2 = cidDoc2;
+        assetDocumentJson.cidDoc3 = cidDoc3;
+        assetDocumentJson.cidDoc4 = cidDoc4;
+        //reviens au string format
+        const carDocsString = JSON.stringify(assetDocumentJson);
+        assetData.Documents = carDocsString;
+
+        // Soumission de la transaction pour mettre à jour l'actif avec les informations fournies
+        const result = await contract.submitTransaction(
+          'UpdateAsset',
+          assetId,
+          brand,
+          model,
+          JSON.stringify(carInfos), // Encodage JSON pour les objets complexes
+          imageUrl,
+          JSON.stringify(documents), // Encodage JSON pour les documents
+          owner,
+        );
+      }
     } catch (error) {
       console.error('Erreur lors de la mise à jour de l’actif :', error);
       return {

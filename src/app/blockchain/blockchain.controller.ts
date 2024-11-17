@@ -1,13 +1,28 @@
-import { Controller, Post, Get, Query, Param, Body, Req } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Query,
+  Param,
+  Body,
+  Req,
+  Patch,
+  UseInterceptors,
+  UploadedFiles,
+} from '@nestjs/common';
 import { BlockchainService } from './blockchain.service'; // Assurez-vous d'importer le service correctement
 import { CreateUserDto } from './dto/create-user-dto';
 import { CreateAssetDto } from './dto/create-asset-dto';
-import { UpdateAssetDto } from './dto/update-asset-dto';
+//import { AddDocumentsToAssetDto, UpdateAssetDto } from './dto/add-docs-dto';
 import { TransferRequestDto } from './dto/transfer-request-dto';
 import { Request } from 'express';
 import { CreateProfileDto } from './dto/create-profile-dto';
 import { ProfileConfirmationDto } from './dto/profile-confirmation-dto';
-import { ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiConsumes, ApiParam, ApiTags } from '@nestjs/swagger';
+import { LogInDto } from './dto/login-dto';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import { AddPictureDto } from './dto/add-picture-dto';
+import { AddDocumentsToAssetDto } from './dto/add-docs-dto';
 
 @Controller('Blockchain-api')
 @ApiTags('Fabric Operations')
@@ -16,9 +31,9 @@ export class BlockchainController {
   constructor(private readonly blockchainService: BlockchainService) {}
 
   @Post('init')
-  async initLedger(@Query('org') org: string) {
+  async initLedger() {
     try {
-      const result = await this.blockchainService.initLedger(org);
+      const result = await this.blockchainService.initLedger();
       return { success: true, data: result };
     } catch (error) {
       console.error(
@@ -71,6 +86,25 @@ export class BlockchainController {
     }
   }
 
+  // LogIn to application and get token
+  @Post('user/login')
+  async LogInToApp(@Req() req: Request, @Body() logInDto: LogInDto) {
+    try {
+      const result = await this.blockchainService.logInToApp(req);
+      return { success: true, data: result };
+    } catch (error) {
+      console.error(
+        "Erreur lors de la création de l'authentification :",
+        error,
+      );
+      return {
+        success: false,
+        error: "Échec de l'authentification",
+        details: error.message,
+      };
+    }
+  }
+
   // Endpoint to get all users
   @Get('users/:org')
   @ApiParam({ name: 'org', required: true, type: 'string' })
@@ -116,6 +150,7 @@ export class BlockchainController {
     }
   }
 
+  // Just for Org1
   @Post('asset/create')
   async createAsset(
     @Req() req: Request,
@@ -135,17 +170,15 @@ export class BlockchainController {
     }
   }
 
-  @Post('asset/update')
+  // Just for Org1
+  /*   @Post('asset/update')
   async updateAsset(
     @Req() req: Request,
-    @Query('org') org: string,
+    //@Query('org') org: string,
     @Body() updateAssetDto: UpdateAssetDto,
   ) {
     try {
-      const result = await this.blockchainService.updateAsset(
-        org,
-        updateAssetDto,
-      );
+      const result = await this.blockchainService.updateAsset(updateAssetDto);
       return { success: true, data: result };
     } catch (error) {
       console.error("Erreur lors de la mise à jour de l'actif :", error);
@@ -155,6 +188,93 @@ export class BlockchainController {
         details: error.message,
       };
     }
+  } */
+
+  @Patch('addpictures/:carId')
+  //@ApiParam({ name: 'org', required: true, type: 'string' })
+  @ApiParam({ name: 'carId', required: true, type: 'string' })
+  //@ApiParam({ name: 'email', required: true, type: 'string' })
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(
+    FileFieldsInterceptor([{ name: 'carPictures', maxCount: 10 }]),
+  ) // Ajustez le maxCount selon vos besoins
+  @ApiBody({
+    description: "Car's pictures",
+    schema: {
+      type: 'object',
+      properties: {
+        carPictures: {
+          type: 'array',
+          items: {
+            type: 'string',
+            format: 'binary',
+          },
+        },
+      },
+    },
+  })
+  async addPicturesToCar(
+    @Req() req: Request,
+    @Body() addPictureDto: AddPictureDto,
+    @UploadedFiles() files: { carPictures?: Express.Multer.File[] }, // Utilisez un objet pour gérer les fichiers par nom de champ
+  ) {
+    const carPictures = files.carPictures || [];
+    return await this.blockchainService.AddPictureToAsset(addPictureDto);
+  }
+
+  @Patch('addfiles/:idCar')
+  //@ApiParam({ name: 'org', required: true, type: 'string' })
+  @ApiParam({ name: 'idCar', required: true, type: 'string' })
+  //@ApiParam({ name: 'email', required: true, type: 'string' })
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'carDoc1', maxCount: 1 },
+      { name: 'carDoc2', maxCount: 1 },
+      { name: 'carDoc3', maxCount: 1 },
+      { name: 'carDoc4', maxCount: 1 },
+    ]),
+  )
+  @ApiBody({
+    description: "Car's documents",
+    schema: {
+      type: 'object',
+      properties: {
+        carDoc1: {
+          type: 'string',
+          format: 'binary',
+        },
+        carDoc2: {
+          type: 'string',
+          format: 'binary',
+        },
+        carDoc3: {
+          type: 'string',
+          format: 'binary',
+        },
+        carDoc4: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  addDocumentsToCar(
+    @Req() req,
+    @Param('idCar') idCar: string,
+    @Body() addDocumentsToAssetDto: AddDocumentsToAssetDto,
+    @UploadedFiles()
+    files: {
+      carDoc1?: Express.Multer.File[];
+      carDoc2?: Express.Multer.File[];
+      carDoc3?: Express.Multer.File[];
+      carDoc4?: Express.Multer.File[];
+    },
+  ) {
+    return this.blockchainService.addDocumentsToCar(
+      addDocumentsToAssetDto,
+      files,
+    );
   }
 
   @Post('transfer/request/:org')

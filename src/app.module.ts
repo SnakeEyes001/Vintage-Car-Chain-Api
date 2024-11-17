@@ -3,15 +3,12 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './app/users/users.module';
 import { AuthModule } from './app/auth/auth.module';
-import { InteractionModule } from './app/interaction/interaction.module';
 import { UserEntity } from './app/users/entities/user.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { HashModule } from './app/hash/hash.module';
 import { AdminOprModule } from './app/admin-opr/admin-opr.module';
 import { SendEmailModule } from './app/send-email/send-email.module';
 import { IpfsModule } from './app/ipfs/ipfs.module';
-import { CarModule } from './app/car/car.module';
-import { BlockchainApiModule } from './app/blockchain-api/blockchain-api.module';
 import * as dotenv from 'dotenv';
 //import { SessionModule } from 'nestjs-session';
 import { UserSessionModule } from './app/user-session/user-session.module';
@@ -57,12 +54,9 @@ require('dotenv').config();
     AdminOprModule,
     AuthModule,
     UsersModule,
-    InteractionModule,
     HashModule,
     SendEmailModule,
     IpfsModule,
-    CarModule,
-    BlockchainApiModule,
     UserSessionModule,
     PasswordModule,
     SendEmailModule,
