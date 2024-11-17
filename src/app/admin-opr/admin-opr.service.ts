@@ -68,49 +68,84 @@ export class AdminOprService {
     return res;
   };
 
-  createAdminForOrg = async (org) => {
-    const caClient = this.getCAForOrg(org);
-    let wallet = null;
-    let msp = null;
-    if (org == 'Org1') {
-      wallet = await buildWallet(walletBasePath, org);
-      msp = MspOrgs.MspOrg1;
+  createAdminForOrg = async (): Promise<string | Record<string, any>> => {
+    try {
+      let msp = null;
+      let wallet = null;
+      let adminOrg1 = null;
+      let adminOrg2 = null;
+
+      const caClientOrg1 = this.getCAForOrg('Org1');
+      const caClientOrg2 = this.getCAForOrg('Org2');
+
+      if (caClientOrg1) {
+        wallet = await buildWallet(walletBasePath, 'Org1');
+        msp = MspOrgs.MspOrg1;
+        adminOrg1 = await enrollAdmin(caClientOrg1, wallet, msp);
+      }
+      if (caClientOrg2) {
+        wallet = await buildWallet(walletBasePath, 'Org2');
+        msp = MspOrgs.MspOrg2;
+        adminOrg2 = await enrollAdmin(caClientOrg2, wallet, msp);
+      }
+
+      const result = {
+        admin1: adminOrg1,
+        admin2: adminOrg2,
+      };
+
+      // Retourner le résultat au format JSON ou comme une chaîne
+      return process.env.RETURN_AS_STRING === 'true'
+        ? JSON.stringify(result)
+        : result;
+    } catch (error) {
+      console.log('error :', error);
+      return JSON.stringify({ error: error.message });
     }
-    if (org == 'Org2') {
-      wallet = await buildWallet(walletBasePath, org);
-      msp = MspOrgs.MspOrg2;
-    }
-    const res = await enrollAdmin(caClient, wallet, msp);
-    return res;
   };
 
-  createUserForOrg = async (org: string) => {
-    const caClient = this.getCAForOrg(org);
-    let wallet = null;
-    let res = null;
-    if (org == 'Org1') {
-      wallet = await buildWallet(walletBasePath, org);
-      // in a real application this would be done only when a new user was required to be added
-      // and would be part of an administrative flow
-      res = await registerAndEnrollUser(
-        caClient,
-        wallet,
-        MspOrgs.MspOrg1,
-        OrganizationUsers.org1UserId,
-        'org1.department1',
-      );
-    }
-    if (org == 'Org2') {
-      wallet = await buildWallet(walletBasePath, org);
-      // in a real application this would be done only when a new user was required to be added
-      // and would be part of an administrative flow
-      res = await registerAndEnrollUser(
-        caClient,
-        wallet,
-        MspOrgs.MspOrg2,
-        OrganizationUsers.org2UserId,
-        'org2.department1',
-      );
+  createUserForOrg = async (): Promise<string | Record<string, any>> => {
+    try {
+      const caClient1 = this.getCAForOrg('Org1');
+      const caClient2 = this.getCAForOrg('Org2');
+      let wallet = null;
+      let userOrg1 = null;
+      let userOrg2 = null;
+
+      if (caClient1) {
+        wallet = await buildWallet(walletBasePath, 'Org1');
+        userOrg1 = await registerAndEnrollUser(
+          caClient1,
+          wallet,
+          MspOrgs.MspOrg1,
+          OrganizationUsers.org1UserId,
+          'org1.department1',
+        );
+      }
+
+      if (caClient2) {
+        wallet = await buildWallet(walletBasePath, 'Org2');
+        userOrg2 = await registerAndEnrollUser(
+          caClient2,
+          wallet,
+          MspOrgs.MspOrg2,
+          OrganizationUsers.org2UserId,
+          'org2.department1',
+        );
+      }
+
+      const result = {
+        userOrg1,
+        userOrg2,
+      };
+
+      // Retourner le résultat en JSON ou en string JSON
+      return process.env.RETURN_AS_STRING === 'true'
+        ? JSON.stringify(result)
+        : result;
+    } catch (error) {
+      console.log('error :', error);
+      return JSON.stringify({ error: error.message });
     }
   };
 

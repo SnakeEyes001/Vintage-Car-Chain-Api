@@ -34,19 +34,28 @@ export class AdminOprController {
   createWalletForOrg(@Param('org') org) {
     return this.adminOprService.createWalletForOrg(org);
   }
-
-  @Get('/createadmin/:org')
-  @ApiParam({ name: 'org', required: true, type: 'string' })
-  async createAdminForOrg(@Param('org') org) {
-    const admin = await this.adminOprService.createAdminForOrg(org);
-    return JSON.stringify(admin);
+  @Get('/createadmins')
+  // @ApiParam({ name: 'org', required: true, type: 'string' }) // Si ce paramètre n'est pas nécessaire ici, commentez-le ou supprimez-le.
+  async createAdminsForOrganization() {
+    try {
+      const admins = await this.adminOprService.createAdminForOrg();
+      // Retourne directement l'objet JSON, inutile d'appeler `JSON.parse` si `createAdminForOrg` retourne déjà un objet.
+      return admins;
+    } catch (error) {
+      // Gère les erreurs de manière explicite
+      console.error('Error in createAdminsForOrganization:', error.message);
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
   }
 
-  @Get('/registerUser/:org')
-  @ApiParam({ name: 'org', required: true, type: 'string' })
-  async createUserForOrg(@Param('org') org) {
-    const user = await this.adminOprService.createUserForOrg(org);
-    return JSON.stringify(user);
+  @Get('/registerusers')
+  //@ApiParam({ name: 'org', required: true, type: 'string' })
+  async createUserForOrganization() {
+    const users = await this.adminOprService.createUserForOrg();
+    return users; //JSON.stringify(user);
   }
 
   // Endpoint to get users by organization

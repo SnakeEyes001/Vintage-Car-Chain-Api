@@ -42,3 +42,32 @@ export class CarInfos {
   @ApiProperty()
   history: string;
 }
+
+export class AssetCar {
+  @ApiProperty()
+  year: string;
+
+  @ApiProperty()
+  engine: string;
+
+  @ApiProperty()
+  power: string;
+
+  @ApiProperty()
+  top_speed: string;
+
+  @ApiProperty()
+  acceleration: string;
+
+  @ApiProperty()
+  transmission: string;
+
+  @ApiProperty()
+  production: string;
+
+  @ApiProperty()
+  current_price: string;
+
+  @ApiProperty()
+  history: string;
+}

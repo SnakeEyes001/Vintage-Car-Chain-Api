@@ -10,5 +10,8 @@ export class CreateAssetDto {
   @IsString() @IsNotEmpty() imageUrl: string;
   @IsString() @IsNotEmpty() documents: Documents;
   @IsString() @IsNotEmpty() owner: string;
+  //IsString() @IsNotEmpty() oldOwners: string;
+  //IsString() @IsNotEmpty() owner: string;
+
   //@IsString() @IsNotEmpty() @ApiProperty() userHash: string;
 }

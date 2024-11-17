@@ -281,6 +281,7 @@ export class BlockchainService {
           hash,
         );
         if (compareHash) {
+          console.log('res :', 1);
           // Soumission de la transaction pour créer un actif avec les informations fournies
           const result = await contract.submitTransaction(
             'CreateAsset',
@@ -289,9 +290,9 @@ export class BlockchainService {
             JSON.stringify(carInfos), // Assurer que carInfos est en format JSON string si nécessaire
             imageUrl,
             JSON.stringify(documents), // Assurer que documents est en format JSON string si nécessaire
-            hash,
-            hash,
+            owner,
           );
+          console.log('res :', result);
 
           // Décoder le résultat pour vérifier la création
           const assetData = JSON.parse(result.toString('utf8'));
