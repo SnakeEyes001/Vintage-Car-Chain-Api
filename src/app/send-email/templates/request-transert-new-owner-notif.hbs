@@ -1,0 +1,51 @@
+<html lang='en'>
+  <head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <title>Demande de transfert en attente</title>
+  </head>
+  <body
+    style='margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;'
+  >
+    <table
+      width='100%'
+      cellpadding='0'
+      cellspacing='0'
+      style='background-color: #f4f4f4;'
+    >
+      <tr>
+        <td align='center' style='padding: 20px 0;'>
+          <table
+            width='600px'
+            cellpadding='0'
+            cellspacing='0'
+            style='background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);'
+          >
+            <tr>
+              <td style='background-color: #28a745; padding: 20px;'>
+                <h1 style='color: #ffffff; margin: 0;'>Demande de transfert en
+                  attente</h1>
+              </td>
+            </tr>
+            <tr>
+              <td style='padding: 30px; color: #333333;'>
+                <p>Bonjour {{newOwner}},</p>
+                <p>Une demande de transfert pour l'objet suivant a été initiée
+                  et est en attente de validation :</p>
+                <ul>
+                  <li>Objet : {{itemDetails}}</li>
+                  <li>Propriétaire actuel : {{currentOwner}}</li>
+                  <li>Date de la demande : {{requestDate}}</li>
+                </ul>
+                <p>Vous serez informé dès que le centre de transfert aura validé
+                  la demande.</p>
+                <p>Cordialement,</p>
+                <p>Équipe Transfert</p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

@@ -214,18 +214,16 @@ export class BlockchainController {
     },
   })
   async addPicturesToCar(
-    @Req() req: Request,
-    @Body() addPictureDto: AddPictureDto,
+    @Param('carId') carId: string,
+    @Query('email') email: string,
     @UploadedFiles() files: { carPictures?: Express.Multer.File[] }, // Utilisez un objet pour gérer les fichiers par nom de champ
   ) {
-    const carPictures = files.carPictures || [];
-    return await this.blockchainService.AddPictureToAsset(addPictureDto);
+    //const carPictures = files.carPictures || [];
+    return await this.blockchainService.AddPictureToAsset(email, carId, files);
   }
 
-  @Patch('addfiles/:idCar')
-  //@ApiParam({ name: 'org', required: true, type: 'string' })
-  @ApiParam({ name: 'idCar', required: true, type: 'string' })
-  //@ApiParam({ name: 'email', required: true, type: 'string' })
+  @Patch('addfiles/:carId')
+  @ApiParam({ name: 'carId', required: true, type: 'string' })
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(
     FileFieldsInterceptor([
@@ -259,10 +257,9 @@ export class BlockchainController {
       },
     },
   })
-  addDocumentsToCar(
-    @Req() req,
-    @Param('idCar') idCar: string,
-    @Body() addDocumentsToAssetDto: AddDocumentsToAssetDto,
+  async addDocumentsToCar(
+    @Param('carId') carId: string,
+    @Query('email') email: string,
     @UploadedFiles()
     files: {
       carDoc1?: Express.Multer.File[];
@@ -271,10 +268,7 @@ export class BlockchainController {
       carDoc4?: Express.Multer.File[];
     },
   ) {
-    return this.blockchainService.addDocumentsToCar(
-      addDocumentsToAssetDto,
-      files,
-    );
+    return await this.blockchainService.addDocumentsToCar(email, carId, files);
   }
 
   @Post('transfer/request/:org')

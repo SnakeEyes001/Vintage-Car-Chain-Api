@@ -8,14 +8,15 @@ import { Password } from '../password/entities/password.entity';
 
 @Injectable()
 export class SendEmailService {
-  constructor(  
-    private  mailerService: MailerService,
-    //private  usersService: UsersService,
-    //private  passwordService: PasswordService, 
-    ) {}
+  constructor(
+    private mailerService: MailerService, //private  usersService: UsersService, //private  passwordService: PasswordService,
+  ) {}
 
-
-  async sendRequestConfirmationToUser(email: string, lastname:string, confirmationCode:string) {
+  async sendRequestConfirmationToUser(
+    email: string,
+    lastname: string,
+    confirmationCode: string,
+  ) {
     //const user = this.usersService.findOne(email);
     await this.mailerService.sendMail({
       to: email,
@@ -30,12 +31,16 @@ export class SendEmailService {
     });
   }
 
-  async sendNotificationToUser(email: string, lastname:string, password:string ) {
+  async sendNotificationToUser(
+    email: string,
+    lastname: string,
+    password: string,
+  ) {
     //const user = this.usersService.findOne(email);
     await this.mailerService.sendMail({
       to: email,
       // from: '"Support Team" <support@example.com>', // override default from
-      subject: 'Welcome to VintageCar App! Confirm your Email by the code.',
+      subject: 'Welcome to VintageCar App!',
       template: './responseconfirmation', // `.hbs` extension is appended automatically
       context: {
         // ✏️ filling curly brackets with content
@@ -44,5 +49,23 @@ export class SendEmailService {
       },
     });
   }
-  
+
+  /*   async sendRequestNotifToNewOwner(
+    email: string,
+    lastname: string,
+    password: string,
+  ) {
+    //const user = this.usersService.findOne(email);
+    await this.mailerService.sendMail({
+      to: email,
+      // from: '"Support Team" <support@example.com>', // override default from
+      subject: 'Welcome to VintageCar App! Confirm your Email by the code.',
+      template: './request-transert-new-owner-notif', // `.hbs` extension is appended automatically
+      context: {
+        // ✏️ filling curly brackets with content
+        newOwner: newOwner,
+        password: password,
+      },
+    });
+  } */
 }

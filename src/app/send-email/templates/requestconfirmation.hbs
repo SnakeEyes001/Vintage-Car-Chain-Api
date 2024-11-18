@@ -4,16 +4,62 @@
     <meta name='viewport' content='width=device-width, initial-scale=1.0' />
     <title>Demande de confirmation</title>
   </head>
-  <body>
-    <div style='background-color: #f4f4f4; padding: 20px;'>
-      <h2 style='color: #333333;'>Bonjour {{lastname}},</h2>
-      <p style='color: #333333;'>Votre demande de creation de profile a ete
-        prise en compte.</p>
-      <p style='color: #333333;'>Veuillez accepter la confirmation avec ce code
-        :
-        {{code}}</p>
-      <p style='color: #333333;'>Cordialement,</p>
-      <p style='color: #333333;'>noreply@gmail.com</p>
-    </div>
+  <body
+    style='margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;'
+  >
+    <table
+      width='100%'
+      cellpadding='0'
+      cellspacing='0'
+      style='margin: 0; padding: 0; background-color: #f4f4f4;'
+    >
+      <tr>
+        <td align='center' style='padding: 20px 0;'>
+          <table
+            width='600px'
+            cellpadding='0'
+            cellspacing='0'
+            style='background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);'
+          >
+            <!-- Header Section with Logo -->
+            <tr>
+              <td
+                style='background-color: #dca311; padding: 20px; text-align: left;'
+              >
+                <img src='logo_app.png' alt='Logo' style='height: 50px;' />
+              </td>
+            </tr>
+            <!-- Content Section -->
+            <tr>
+              <td style='padding: 30px; color: #333333; line-height: 1.6;'>
+                <h2 style='color: #333333; margin-top: 0;'>Bonjour
+                  {{lastname}},</h2>
+                <p style='margin-bottom: 20px;'>Votre demande de création de
+                  profil a été prise en compte.</p>
+                <p
+                  style='font-weight: bold; background-color: #f8f9fa; padding: 10px; border: 1px dashed #007bff; text-align: center;'
+                >
+                  Veuillez utiliser ce code pour confirmer votre profil :
+                  <span style='color: #dca311;'>{{code}}</span>
+                </p>
+                <p style='margin-top: 20px;'>Cordialement,</p>
+                <p
+                  style='margin: 0; font-style: italic; color: #555555;'
+                >noreply@gmail.com</p>
+              </td>
+            </tr>
+            <!-- Footer Section -->
+            <tr>
+              <td
+                style='background-color: #f4f4f4; text-align: center; padding: 15px; font-size: 12px; color: #777;'
+              >
+                Cet email est généré automatiquement, veuillez ne pas y
+                répondre.
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
   </body>
 </html>

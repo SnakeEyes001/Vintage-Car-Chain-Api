@@ -265,14 +265,20 @@ export class BlockchainService {
     }
   }
 
-  //'Seuls les collectionneurs (Org1) peuvent créer un actif.'
   async createAsset(createAssetDto: CreateAssetDto) {
     try {
       const contract = await this.getContract('Org1');
       const { email, brand, model, carInfos, imageUrl, documents, owner } =
         createAssetDto;
-      const profile = await this.usersService.findOne(email);
 
+      // Validation des données
+      if (!brand || !model || !carInfos || !imageUrl || !documents || !owner) {
+        throw new Error(
+          "Certains paramètres de création d'actif sont manquants ou invalides.",
+        );
+      }
+
+      const profile = await this.usersService.findOne(email);
       const allUsers = await this.getAllUsers('Org1');
       for (let user in allUsers) {
         const hash = allUsers[user].UserHash;
@@ -281,22 +287,25 @@ export class BlockchainService {
           hash,
         );
         if (compareHash) {
-          console.log('res :', 1);
-          // Soumission de la transaction pour créer un actif avec les informations fournies
+          console.log('Comparaison réussie, soumission de la transaction...');
+
           const result = await contract.submitTransaction(
             'CreateAsset',
             brand,
             model,
-            JSON.stringify(carInfos), // Assurer que carInfos est en format JSON string si nécessaire
+            JSON.stringify(carInfos),
             imageUrl,
-            JSON.stringify(documents), // Assurer que documents est en format JSON string si nécessaire
-            owner,
+            JSON.stringify(documents),
+            hash,
           );
-          console.log('res :', result);
 
-          // Décoder le résultat pour vérifier la création
+          if (!result) {
+            throw new Error("La transaction n'a pas renvoyé de résultat.");
+          }
+
+          console.log('Résultat de la transaction :', result.toString());
+          // Décodage de la réponse en JSON pour un format plus lisible
           const assetData = JSON.parse(result.toString('utf8'));
-
           return { success: true, data: assetData };
         }
       }
@@ -309,61 +318,77 @@ export class BlockchainService {
     }
   }
 
-  async AddPictureToAsset(addPictureDto: AddPictureDto) {
+  async AddPictureToAsset(email, assetId, files) {
     try {
       const contract = await this.getContract('Org1');
-      const asset = await this.readAsset('Org1', addPictureDto.assetId);
-      // Décodage de la réponse en JSON pour un format plus lisible
-      const assetData = JSON.parse(asset.toString());
+      /* const { email, brand, model, carInfos, imageUrl, documents, owner } =
+        createAssetDto;
 
-      if (assetData) {
-        const { assetId, brand, model, carInfos, imageUrl, documents, owner } =
-          addPictureDto;
-        // Soumission de la transaction pour mettre à jour l'actif avec les informations fournies
-        const result = await contract.submitTransaction(
-          'UpdateAsset',
-          assetId,
-          brand,
-          model,
-          JSON.stringify(carInfos), // Encodage JSON pour les objets complexes
-          imageUrl,
-          JSON.stringify(documents), // Encodage JSON pour les documents
-          owner,
+      // Validation des données
+      if (!brand || !model || !carInfos || !imageUrl || !documents || !owner) {
+        throw new Error(
+          "Certains paramètres de création d'actif sont manquants ou invalides.",
         );
+      } */
 
-        // Décoder le résultat pour vérifier la mise à jour
-        const updatedAssetData = JSON.parse(result.toString('utf8'));
+      const profile = await this.usersService.findOne(email);
+      const allUsers = await this.getAllUsers('Org1');
+      for (let user in allUsers) {
+        const hash = allUsers[user].UserHash;
+        const compareHash = await this.hashService.compareHash(
+          profile.email,
+          hash,
+        );
+        if (compareHash) {
+          console.log('Comparaison réussie, soumission de la transaction...');
+          const contract = await this.getContract('Org1');
+          const asset = await this.readAsset('Org1', assetId);
+          // Décodage de la réponse en JSON pour un format plus lisible
+          const assetJson = JSON.parse(asset.assetData);
+          console.log('assetJson :', assetJson);
+          const imageCid = await this.ipfsService.uploadFile(files[0]);
+          assetJson.ImageUrl = imageCid;
+          const result = await contract.submitTransaction(
+            'UpdateAsset',
+            assetJson.ID,
+            assetJson.Brand,
+            assetJson.Model,
+            JSON.stringify(assetJson.CarInfos),
+            assetJson.ImageUrl,
+            JSON.stringify(assetJson.Documents),
+            assetJson.Owner,
+          );
 
-        return { success: true, updatedAssetData };
+          if (!result) {
+            throw new Error("La transaction n'a pas renvoyé de résultat.");
+          }
+
+          console.log('Résultat de la transaction :', result.toString());
+          // Décodage de la réponse en JSON pour un format plus lisible
+          const assetData = JSON.parse(result.toString('utf8'));
+          return { success: true, data: assetData };
+        }
       }
     } catch (error) {
-      console.error('Erreur lors de la mise à jour de l’actif :', error);
+      console.error('Erreur lors de la création de l’actif :', error);
       return {
-        error: "Échec de la mise à jour de l'actif",
+        error: "Échec de la création de l'actif",
         details: error.message,
       };
     }
   }
 
-  async addDocumentsToCar(
-    addDocumentsToAssetDto: AddDocumentsToAssetDto,
-    files: any,
-  ) {
+  async addDocumentsToCar(email, assetId, files: any) {
     try {
       const contract = await this.getContract('Org1');
-      const asset = await this.readAsset(
-        'Org1',
-        addDocumentsToAssetDto.assetId,
-      );
+      const asset = await this.readAsset('Org1', assetId);
       // Décodage de la réponse en JSON pour un format plus lisible
-      const assetData = JSON.parse(asset.toString());
-      const { assetId, brand, model, carInfos, imageUrl, documents, owner } =
-        addDocumentsToAssetDto;
+      const assetJson = JSON.parse(asset.assetData);
 
-      if (assetData) {
+      if (assetJson) {
         // asset json
         //const assetJson = JSON.parse(assetData);
-        const assetDocumentJson = JSON.parse(documents);
+        const assetDocumentJson = assetJson.Documents;
 
         //extract the files data
         const doc1Data = files.cidDoc1;
@@ -388,19 +413,22 @@ export class BlockchainService {
         assetDocumentJson.cidDoc4 = cidDoc4;
         //reviens au string format
         const carDocsString = JSON.stringify(assetDocumentJson);
-        assetData.Documents = carDocsString;
+        assetJson.Documents = carDocsString;
 
         // Soumission de la transaction pour mettre à jour l'actif avec les informations fournies
         const result = await contract.submitTransaction(
           'UpdateAsset',
-          assetId,
-          brand,
-          model,
-          JSON.stringify(carInfos), // Encodage JSON pour les objets complexes
-          imageUrl,
-          JSON.stringify(documents), // Encodage JSON pour les documents
-          owner,
+          assetJson.ID,
+          assetJson.Brand,
+          assetJson.Model,
+          JSON.stringify(assetJson.CarInfos), // Encodage JSON pour les objets complexes
+          assetJson.ImageUrl,
+          assetJson.Documents, // Encodage JSON pour les documents
+          assetJson.Owner,
         );
+        // Décodage de la réponse en JSON pour un format plus lisible
+        const assetData = JSON.parse(result.toString('utf8'));
+        return { success: true, data: assetData };
       }
     } catch (error) {
       console.error('Erreur lors de la mise à jour de l’actif :', error);
