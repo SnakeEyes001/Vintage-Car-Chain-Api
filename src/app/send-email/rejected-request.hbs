@@ -2,7 +2,7 @@
   <head>
     <meta charset='UTF-8' />
     <meta name='viewport' content='width=device-width, initial-scale=1.0' />
-    <title>Personal Data</title>
+    <title>Transfer Request Rejected</title>
   </head>
   <body
     style='margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;'
@@ -24,7 +24,7 @@
             <!-- Header Section with Logo -->
             <tr>
               <td
-                style='background-color: #dca311; padding: 20px; text-align: left;'
+                style='background-color: #d9534f; padding: 20px; text-align: left;'
               >
                 <img src='./logo_app.png' alt='Logo' style='height: 50px;' />
               </td>
@@ -32,27 +32,31 @@
             <!-- Content Section -->
             <tr>
               <td style='padding: 30px; color: #333333; line-height: 1.6;'>
-                <h2 style='color: #333333; margin-top: 0;'>Hello
-                  {{lastname}},</h2>
-                <p style='margin-bottom: 20px;'>Congratulations! Your account
-                  has been successfully created.</p>
-                <p style='margin-bottom: 20px;'>We have assigned you a temporary
-                  password that you can change later.</p>
-                <div
-                  style='padding: 15px; background-color: #f8f9fa; border: 1px dashed #28a745; margin-bottom: 20px;'
-                >
-                  <p style='margin: 0; font-weight: bold; text-align: center;'>
-                    Temporary password:
-                    <span style='color: #dca311;'>{{password}}</span>
-                  </p>
-                </div>
-                <p style='margin-bottom: 20px;'>Please note that the **hash of
-                  your profile** represents your unique identity in the
-                  application.</p>
+                <h2 style='color: #333333; margin-top: 0;'>Hello,</h2>
+                <p style='margin-bottom: 20px;'>
+                  We regret to inform you that the transfer request has been
+                  rejected by the center. Below are the details of the request:
+                </p>
+                <ul style='margin-bottom: 20px;'>
+                  <li><strong>Asset ID:</strong> ASSET1</li>
+                  <li><strong>Request ID:</strong> REQUEST1</li>
+                  <li><strong>New Owner:</strong>
+                    $2b$10$MNM9To4TCVF.jlQavelw.eYLKU04WSbnk7/cjEjZ.ECSb3Xx1s7oi</li>
+                  <li><strong>Requester:</strong>
+                    $2b$10$CA0g63u.cDzDrnTNUeNSJe1Kb34b/anD.eMBDvrpTqgP.xVJIaylW</li>
+                  <li><strong>Status:</strong> Rejected</li>
+                  <li><strong>Timestamp:</strong>
+                    Tue Nov 19 2024 13:45:04 GMT+0100 (Central European Standard
+                    Time)</li>
+                </ul>
                 <p
                   style='margin-bottom: 20px; color: #d9534f; font-weight: bold;'
-                >Warning: The password is unique and cannot be duplicated. Keep
-                  it safe!</p>
+                >
+                  Reason: The documents provided were deemed unreliable.
+                </p>
+                <p style='margin-bottom: 20px;'>If you believe this decision was
+                  made in error, please contact the center for further
+                  assistance.</p>
                 <p style='margin-top: 20px;'>Kind regards,</p>
                 <p
                   style='margin: 0; font-style: italic; color: #555555;'

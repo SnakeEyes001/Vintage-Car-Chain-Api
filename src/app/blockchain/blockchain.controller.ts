@@ -150,6 +150,21 @@ export class BlockchainController {
     }
   }
 
+  @Get('user/userhash/:email')
+  async findUserHashByEmail(@Param('email') email: string) {
+    try {
+      const result = await this.blockchainService.FindUserHashByEmail(email);
+      return { success: true, data: result };
+    } catch (error) {
+      console.error("Erreur lors de la lecture de l'utilisateur :", error);
+      return {
+        success: false,
+        error: "Échec de la lecture de l'utilisateur",
+        details: error.message,
+      };
+    }
+  }
+
   // Just for Org1
   @Post('asset/create')
   async createAsset(
@@ -271,15 +286,10 @@ export class BlockchainController {
     return await this.blockchainService.addDocumentsToCar(email, carId, files);
   }
 
-  @Post('transfer/request/:org')
-  async requestTransfer(
-    @Req() req: Request,
-    @Query('org') org: string,
-    @Body() transferRequestDto: TransferRequestDto,
-  ) {
+  @Post('transfer/request')
+  async requestTransfer(@Body() transferRequestDto: TransferRequestDto) {
     try {
       const result = await this.blockchainService.requestTransfer(
-        org,
         transferRequestDto,
       );
       return result; //{ success: true, data: result };
@@ -294,19 +304,10 @@ export class BlockchainController {
   }
 
   @Post('transfer/approve-center/:id')
-  async approveTransferByCenter(
-    @Req() req: Request,
-    @Query('org') org: string,
-    @Param('id') id: string,
-    //@Body('requestIndex') requestIndex: any,
-  ) {
+  async approveTransferByCenter(@Param('id') id: string) {
     try {
-      const result = await this.blockchainService.approveTransferByCenter(
-        org,
-        id,
-        req,
-      );
-      return true; //{ success: true, data: result };
+      const result = await this.blockchainService.approveTransferByCenter(id);
+      return { success: true, data: result };
     } catch (error) {
       console.error(
         "Erreur lors de l'approbation du transfert par le centre :",
@@ -322,15 +323,11 @@ export class BlockchainController {
 
   @Post('transfer/approve-owner/:id')
   async approveTransferByOwner(
-    @Req() req: Request,
-    @Query('org') org: string,
-    @Query('approverUserHash') approverUserHash: string,
     @Param('id') id: string,
-    //@Body() body: { approverUserHash: string; requestIndex: string },
+    @Query('approverUserHash') approverUserHash: string,
   ) {
     try {
       const result = await this.blockchainService.approveTransferByOwner(
-        org,
         id,
         approverUserHash,
       );
@@ -350,14 +347,11 @@ export class BlockchainController {
 
   @Post('transfer/reject/:id')
   async rejectTransferByCenter(
-    @Req() req: Request,
-    @Query('org') org: string,
     @Param('id') id: string,
-    @Body('requestIndex') requestIndex: number,
+    @Query('property') requestIndex: number,
   ) {
     try {
       const result = await this.blockchainService.rejectTransferByCenter(
-        org,
         id,
         requestIndex,
       );
@@ -428,6 +422,24 @@ export class BlockchainController {
   async getAllRequests(@Query('org') org: string) {
     try {
       const result = await this.blockchainService.getAllRequests(org);
+      return { success: true, data: result };
+    } catch (error) {
+      console.error(
+        'Erreur lors de la récupération de toutes les demandes :',
+        error,
+      );
+      return {
+        success: false,
+        error: 'Échec de la récupération des demandes',
+        details: error.message,
+      };
+    }
+  }
+
+  @Get('request/:id')
+  async findRequestById(@Query('id') id: string) {
+    try {
+      const result = await this.blockchainService.findRequestById(id);
       return { success: true, data: result };
     } catch (error) {
       console.error(

@@ -18,6 +18,7 @@ import { parse } from 'path';
 import { AuthService } from '../auth/auth.service';
 import { AddPictureDto } from './dto/add-picture-dto';
 import { IpfsService } from '../ipfs/ipfs.service';
+import { RequestDto } from '../send-email/dto/request-dto';
 
 @Injectable()
 export class BlockchainService {
@@ -439,22 +440,39 @@ export class BlockchainService {
     }
   }
 
-  async requestTransfer(org: string, transferRequestDto: TransferRequestDto) {
+  async requestTransfer(transferRequestDto: TransferRequestDto) {
     try {
-      const contract = await this.getContract(org);
-      const { id, requesterUserHash, newOwner } = transferRequestDto;
+      const contract = await this.getContract('Org1');
+      const { requestId, requesterUserHash, newOwner } = transferRequestDto;
       const timestamp = new Date();
       const timestampStr = timestamp.toString();
       // Soumission de la transaction pour demander le transfert
       const result = await contract.submitTransaction(
         'RequestTransfer',
-        id,
+        requestId,
         requesterUserHash,
         newOwner,
         timestampStr,
       );
-      //console.log('res :', result);
       const requestData = JSON.parse(result.toString('utf8'));
+      //send notification to center
+      const request1 = new RequestDto();
+      request1.email_to = 'vehicle.licensing.office@gmail.com';
+      (request1.request_ID = 'REQUEST1'), (request1.asset_ID = requestId);
+      request1.requester = requesterUserHash;
+      request1.newOwner = newOwner;
+      const notificationToCenter =
+        await this.sendEmailService.NotifOldOwnerToCenter(request1);
+
+      //send notification to new owner
+      const request2 = new RequestDto();
+      request2.email_to = 'userowner710@gmail.com';
+      (request2.request_ID = 'REQUEST1'), (request2.asset_ID = requestId);
+      request2.requester = requesterUserHash;
+      request2.newOwner = newOwner;
+      const notificationToNewOwner =
+        await this.sendEmailService.NotifCenterToNewOwner(request2);
+
       // Vérification si la transaction a réussi (optionnel, selon la logique de votre blockchain)
       return { success: true, result: requestData };
     } catch (error) {
@@ -466,18 +484,39 @@ export class BlockchainService {
     }
   }
 
-  async approveTransferByCenter(org: string, id: string, req: Request) {
+  async approveTransferByCenter(requestId: string) {
     try {
-      const contract = await this.getContract(org);
+      const contract = await this.getContract('Org2');
       //const { requestIndex } = req.body;
       //const inndexInt = parseInt(requestIndex);
 
       // Soumission de la transaction pour approuver le transfert
       const result = await contract.submitTransaction(
         'ApproveTransferByCenter',
-        id,
+        requestId,
       );
-      //console.log('res :', result);
+
+      const requestById = await this.findRequestById(requestId);
+      //send notification to owner
+      const request1 = new RequestDto();
+      request1.email_to = 'userowner451@gmail.com';
+      (request1.request_ID = requestById.ID),
+        (request1.asset_ID = requestById.AssetID);
+      request1.requester = requestById.Requester;
+      request1.newOwner = requestById.NewOwner;
+      const notificationToCenter =
+        await this.sendEmailService.NotifOldOwnerToCenter(request1);
+
+      //send notification to new owner
+      const request2 = new RequestDto();
+      request2.email_to = 'userowner710@gmail.com';
+      (request2.request_ID = requestById.ID),
+        (request2.asset_ID = requestById.AssetID);
+      request2.requester = requestById.Requester;
+      request2.newOwner = requestById.NewOwner;
+      const notificationToNewOwner =
+        await this.sendEmailService.NotifCenterToNewOwner(request2);
+
       const resData = JSON.parse(result.toString('utf8'));
       // Si nécessaire, retourner le résultat ou un message de succès
       return {
@@ -494,26 +533,46 @@ export class BlockchainService {
     }
   }
 
-  async approveTransferByOwner(
-    org: string,
-    id: string,
-    approverUserHash: string,
-  ) {
+  async approveTransferByOwner(requestId: string, approverUserHash: string) {
     try {
-      const contract = await this.getContract(org);
+      const contract = await this.getContract('Org1');
 
       // Soumission de la transaction pour approuver le transfert par le propriétaire
       const result = await contract.submitTransaction(
         'ApproveTransferByOwner',
-        id,
+        requestId,
         approverUserHash,
       );
+
+      const requestById = await this.findRequestById(requestId);
+      //send notification to center
+      const request1 = new RequestDto();
+      request1.email_to = 'vehicle.licensing.office@gmail.com';
+      (request1.request_ID = requestById.ID),
+        (request1.asset_ID = requestById.AssetID);
+      request1.requester = requestById.Requester;
+      request1.newOwner = requestById.NewOwner;
+      const notificationToCenter =
+        await this.sendEmailService.NotifOldOwnerToCenter(request1);
+
+      //send notification to new owner
+      const request2 = new RequestDto();
+      request2.email_to = 'userowner710@gmail.com';
+      (request2.request_ID = requestById.ID),
+        (request2.asset_ID = requestById.AssetID);
+      request2.requester = requestById.Requester;
+      request2.newOwner = requestById.NewOwner;
+      const notificationToNewOwner =
+        await this.sendEmailService.NotifCenterToNewOwner(request2);
+
+      const resData = JSON.parse(result.toString('utf8'));
+
       //const resData = JSON.parse(result.toString('utf8'));
       // Si nécessaire, retourner le résultat ou un message de succès
       return {
         success: true,
         message: 'Transfert approuvé par le propriétaire avec succès',
-        result: result,
+        result: resData,
       };
     } catch (error) {
       console.error(
@@ -527,9 +586,9 @@ export class BlockchainService {
     }
   }
 
-  async rejectTransferByCenter(org: string, id: string, requestIndex: number) {
+  async rejectTransferByCenter(id: string, requestIndex: number) {
     try {
-      const contract = await this.getContract(org);
+      const contract = await this.getContract('Org2');
 
       // Soumission de la transaction pour rejeter le transfert par le centre
       const result = await contract.submitTransaction(
@@ -658,6 +717,21 @@ export class BlockchainService {
     }
   }
 
+  async findRequestById(id: string) {
+    try {
+      const contract = await this.getContract('Org2');
+      const res = await contract.evaluateTransaction('GetAllRequests');
+
+      const jsonString = res.toString('utf8');
+      const request = JSON.parse(jsonString);
+
+      return request[0];
+    } catch (error) {
+      console.error('Erreur lors de la récupération des requêtes :', error);
+      return { error: 'Impossible de récupérer les requêtes.' };
+    }
+  }
+
   async getRequestsByUser(org: string, userHash: string) {
     try {
       const contract = await this.getContract(org);
@@ -685,6 +759,26 @@ export class BlockchainService {
         error: 'Échec de la récupération des demandes',
         details: error.message,
       };
+    }
+  }
+
+  async FindUserHashByEmail(email: string) {
+    try {
+      const profile = await this.usersService.findOne(email);
+      const allUsers = await this.getAllUsers('Org1');
+      for (let user in allUsers) {
+        const hash = allUsers[user].UserHash;
+        const compareHash = await this.hashService.compareHash(
+          profile.email,
+          hash,
+        );
+        if (compareHash) {
+          console.log('Comparaison réussie, soumission de la transaction...');
+          return allUsers[user];
+        }
+      }
+    } catch (error) {
+      console.log('error :', error);
     }
   }
 }
