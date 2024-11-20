@@ -21,7 +21,4 @@ export class CreateProfileDto {
 
   @ApiProperty()
   password: string;
-
-  //@ApiProperty()
-  //hash: string;
 }

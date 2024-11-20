@@ -28,10 +28,12 @@ async function bootstrap() {
 
   // Configurer Swagger pour documenter uniquement les contrôleurs nécessaires
   const swaggerConfig = new DocumentBuilder()
-    .setTitle('API Documentation')
-    .setDescription("Description de l'API")
+    .setTitle('Vintage Car Ownership Transfer API')
+    .setDescription(
+      'This API facilitates seamless communication with the Hyperledger Test Network for securely managing the ownership transfer of vintage cars. It ensures transparency, immutability, and efficiency in tracking ownership history while leveraging blockchain technology for a tamper-proof record of transactions.',
+    )
     .setVersion('1.0')
-    .addTag('Blockchain-api') // Ajouter des tags si nécessaire
+    .addTag('Fabric test-network') // Ajouter des tags si nécessaire
     .build();
 
   const document = SwaggerModule.createDocument(app, swaggerConfig, {

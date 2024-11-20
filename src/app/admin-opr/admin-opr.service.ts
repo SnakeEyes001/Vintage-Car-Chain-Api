@@ -89,15 +89,11 @@ export class AdminOprService {
         adminOrg2 = await enrollAdmin(caClientOrg2, wallet, msp);
       }
 
-      const result = {
-        admin1: adminOrg1,
-        admin2: adminOrg2,
+      return {
+        succes: true,
+        message:
+          'Admins were created with success fot both organizations (Org1 for users & Org2 for vehicle licensing office)',
       };
-
-      // Retourner le résultat au format JSON ou comme une chaîne
-      return process.env.RETURN_AS_STRING === 'true'
-        ? JSON.stringify(result)
-        : result;
     } catch (error) {
       console.log('error :', error);
       return JSON.stringify({ error: error.message });
@@ -134,15 +130,11 @@ export class AdminOprService {
         );
       }
 
-      const result = {
-        userOrg1,
-        userOrg2,
+      return {
+        succes: true,
+        message:
+          'Users were created with success fot both organizations (Org1 for users & Org2 for vehicle licensing office)',
       };
-
-      // Retourner le résultat en JSON ou en string JSON
-      return process.env.RETURN_AS_STRING === 'true'
-        ? JSON.stringify(result)
-        : result;
     } catch (error) {
       console.log('error :', error);
       return JSON.stringify({ error: error.message });

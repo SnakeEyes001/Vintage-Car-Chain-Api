@@ -8,15 +8,16 @@ import {
   Delete,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiExcludeEndpoint, ApiParam, ApiTags } from '@nestjs/swagger';
 import { CreateUserProfileDto } from './dto/user-dto';
 //import { get } from 'http';
 
 @Controller('users')
-@ApiTags('Users operations')
+@ApiTags('Users Endpoints')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @ApiExcludeEndpoint()
   @Post('/newuser')
   async createNewProfile(@Body() createUserProfileDto: CreateUserProfileDto) {
     try {
@@ -29,8 +30,9 @@ export class UsersController {
     }
   }
 
+  @ApiExcludeEndpoint()
   @Get('/confirmation/:code')
-  async confirmationInscription(@Param('code') code:string) {
+  async confirmationInscription(@Param('code') code: string) {
     try {
       const res = await this.usersService.confirmationCreateProfile(code);
       return res;
@@ -60,7 +62,7 @@ export class UsersController {
     }
   }
 
- /*  @Get('/login/:email/:password')
+  /*  @Get('/login/:email/:password')
   @ApiParam({ name: 'email', required: true, type: 'string' })
   @ApiParam({ name: 'password', required: true, type: 'string' })
   async login(@Param('email') email, @Param('password') password) {

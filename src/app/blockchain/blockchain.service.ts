@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Request } from 'express';
 import * as crypto from 'crypto';
-import { AdminOprService } from '../admin-opr/admin-opr.service';
+
 import { CreateUserDto } from './dto/create-user-dto';
 import { CreateAssetDto } from './dto/create-asset-dto';
 import { AddDocumentsToAssetDto } from './dto/add-docs-dto';
@@ -19,6 +19,8 @@ import { AuthService } from '../auth/auth.service';
 import { AddPictureDto } from './dto/add-picture-dto';
 import { IpfsService } from '../ipfs/ipfs.service';
 import { RequestDto } from '../send-email/dto/request-dto';
+import { LogInDto } from './dto/login-dto';
+import { AdminOprService } from '../admin-opr/admin-opr.service';
 
 @Injectable()
 export class BlockchainService {
@@ -129,6 +131,11 @@ export class BlockchainService {
           userFromSession.lastName,
           passAleatoire,
         );
+        const passwordHash = await this.hashService.generateHashForUser(
+          passAleatoire,
+        );
+
+        userFromSession.password = passwordHash;
         //Enregitrement dans la base de donnes
         const userBD = await this.usersService.createUserProfile(
           userFromSession,
@@ -168,10 +175,10 @@ export class BlockchainService {
     }
   }
 
-  async logInToApp(req: Request): Promise<any> {
+  async logInToApp(logInDto: LogInDto): Promise<any> {
     try {
-      const { email, passowrd } = req.body;
-      const result = await this.authService.verificationLogin(email);
+      const { email, password } = logInDto;
+      const result = await this.authService.verificationLogin(email, password);
       return result;
     } catch (Error) {
       console.error('error', Error);
@@ -461,6 +468,8 @@ export class BlockchainService {
       (request1.request_ID = 'REQUEST1'), (request1.asset_ID = requestId);
       request1.requester = requesterUserHash;
       request1.newOwner = newOwner;
+
+      request1.timestamp = timestampStr;
       const notificationToCenter =
         await this.sendEmailService.NotifOldOwnerToCenter(request1);
 
@@ -470,8 +479,9 @@ export class BlockchainService {
       (request2.request_ID = 'REQUEST1'), (request2.asset_ID = requestId);
       request2.requester = requesterUserHash;
       request2.newOwner = newOwner;
+      request1.timestamp = timestampStr;
       const notificationToNewOwner =
-        await this.sendEmailService.NotifCenterToNewOwner(request2);
+        await this.sendEmailService.NotifOldOwnerToNewOwner(request2);
 
       // Vérification si la transaction a réussi (optionnel, selon la logique de votre blockchain)
       return { success: true, result: requestData };
@@ -504,8 +514,10 @@ export class BlockchainService {
         (request1.asset_ID = requestById.AssetID);
       request1.requester = requestById.Requester;
       request1.newOwner = requestById.NewOwner;
+      request1.status = requestById.Status;
+      request1.timestamp = requestById.Timestamp;
       const notificationToCenter =
-        await this.sendEmailService.NotifOldOwnerToCenter(request1);
+        await this.sendEmailService.NotifCenterToOldOwner(request1);
 
       //send notification to new owner
       const request2 = new RequestDto();
@@ -514,6 +526,8 @@ export class BlockchainService {
         (request2.asset_ID = requestById.AssetID);
       request2.requester = requestById.Requester;
       request2.newOwner = requestById.NewOwner;
+      request2.status = requestById.Status;
+      request2.timestamp = requestById.Timestamp;
       const notificationToNewOwner =
         await this.sendEmailService.NotifCenterToNewOwner(request2);
 
@@ -552,8 +566,10 @@ export class BlockchainService {
         (request1.asset_ID = requestById.AssetID);
       request1.requester = requestById.Requester;
       request1.newOwner = requestById.NewOwner;
+      request1.status = requestById.Status;
+      request1.timestamp = requestById.Timestamp;
       const notificationToCenter =
-        await this.sendEmailService.NotifOldOwnerToCenter(request1);
+        await this.sendEmailService.NotifApprouveFromOldOwnerToCenter(request1);
 
       //send notification to new owner
       const request2 = new RequestDto();
@@ -562,8 +578,10 @@ export class BlockchainService {
         (request2.asset_ID = requestById.AssetID);
       request2.requester = requestById.Requester;
       request2.newOwner = requestById.NewOwner;
+      request2.status = requestById.Status;
+      request2.timestamp = requestById.Timestamp;
       const notificationToNewOwner =
-        await this.sendEmailService.NotifCenterToNewOwner(request2);
+        await this.sendEmailService.NotifApprouveFromOldOwnerNewOwner(request2);
 
       const resData = JSON.parse(result.toString('utf8'));
 

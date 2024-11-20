@@ -25,7 +25,7 @@ import { AddPictureDto } from './dto/add-picture-dto';
 import { AddDocumentsToAssetDto } from './dto/add-docs-dto';
 
 @Controller('Blockchain-api')
-@ApiTags('Fabric Operations')
+@ApiTags('Blockchain Endpoints - Hyperledger-fabric')
 // Vous pouvez personnaliser le préfixe si nécessaire
 export class BlockchainController {
   constructor(private readonly blockchainService: BlockchainService) {}
@@ -88,9 +88,9 @@ export class BlockchainController {
 
   // LogIn to application and get token
   @Post('user/login')
-  async LogInToApp(@Req() req: Request, @Body() logInDto: LogInDto) {
+  async LogInToApp(@Body() logInDto: LogInDto) {
     try {
-      const result = await this.blockchainService.logInToApp(req);
+      const result = await this.blockchainService.logInToApp(logInDto);
       return { success: true, data: result };
     } catch (error) {
       console.error(
@@ -292,7 +292,7 @@ export class BlockchainController {
       const result = await this.blockchainService.requestTransfer(
         transferRequestDto,
       );
-      return result; //{ success: true, data: result };
+      return { success: true, data: result };
     } catch (error) {
       console.error('Erreur lors de la demande de transfert :', error);
       return {

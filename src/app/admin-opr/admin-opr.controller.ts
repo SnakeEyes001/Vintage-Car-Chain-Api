@@ -9,12 +9,14 @@ import {
   Query,
 } from '@nestjs/common';
 import { AdminOprService } from './admin-opr.service';
-import { ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiExcludeEndpoint, ApiParam, ApiTags } from '@nestjs/swagger';
 
 @Controller('admin-opr')
-@ApiTags('Admin routes')
+@ApiTags('Admin Endpoints')
 export class AdminOprController {
   constructor(private readonly adminOprService: AdminOprService) {}
+
+  @ApiExcludeEndpoint()
   @ApiParam({ name: 'org', required: true, type: 'string' })
   @Get('/ccp/:org')
   getCcpOrg(@Param('org') org: string) {
@@ -22,6 +24,7 @@ export class AdminOprController {
     return this.adminOprService.getCCPOrg(org);
   }
 
+  @ApiExcludeEndpoint()
   @Get('/ca-client/:org')
   @ApiParam({ name: 'org', required: true, type: 'string' })
   getCaClient(@Param('org') org) {
@@ -29,11 +32,13 @@ export class AdminOprController {
     return this.adminOprService.getCAForOrg(org);
   }
 
+  @ApiExcludeEndpoint()
   @Get('/wallet/:org')
   @ApiParam({ name: 'org', required: true, type: 'string' })
   createWalletForOrg(@Param('org') org) {
     return this.adminOprService.createWalletForOrg(org);
   }
+
   @Get('/createadmins')
   // @ApiParam({ name: 'org', required: true, type: 'string' }) // Si ce paramètre n'est pas nécessaire ici, commentez-le ou supprimez-le.
   async createAdminsForOrganization() {
@@ -69,11 +74,14 @@ export class AdminOprController {
     }
   } */
 
+  @ApiExcludeEndpoint()
   @Get('/getwayOrgUser/:org')
   @ApiParam({ name: 'org', required: true, type: 'string' })
   getWayForOrgUser(@Param('org') org) {
     return this.adminOprService.createGetWayForOrgUser(org);
   }
+
+  @ApiExcludeEndpoint()
   @Get('/chaincodeOrgUser/:org')
   @ApiParam({ name: 'org', required: true, type: 'string' })
   getChaincodeForOrgUser(@Param('org') org) {

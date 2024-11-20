@@ -4,7 +4,6 @@ import { HashModule } from '../hash/hash.module';
 import { HashService } from '../hash/hash.service';
 
 import { IpfsService } from '../ipfs/ipfs.service';
-import { AdminOprService } from '../admin-opr/admin-opr.service';
 import { UsersService } from '../users/users.service';
 import { UsersModule } from '../users/users.module';
 import { UserEntity } from '../users/entities/user.entity';
@@ -22,6 +21,7 @@ import { RedisCacheModule } from '../redis-cache/redis-cache.module';
 import { RedisCacheService } from '../redis-cache/redis-cache.service';
 import { BlockchainController } from './blockchain.controller';
 import { BlockchainService } from './blockchain.service';
+import { AdminOprService } from '../admin-opr/admin-opr.service';
 
 @Global()
 @Module({
