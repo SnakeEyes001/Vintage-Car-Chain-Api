@@ -1,35 +1,38 @@
 # 🚗 vintage-car-chain-api
 
-**vintage-car-chain-api** is a NestJS-powered API for managing **vintage car ownership and history** on a **private Ethereum-compatible blockchain**. The API provides secure endpoints to register cars, transfer ownership, view history, and integrate with mobile apps via REST or GraphQL.
-
----
-
-## 🚀 Features
-
-- 📜 Register vintage cars as unique digital assets (NFT/ERC721 or struct in smart contract)
-- 🔑 Transfer ownership securely via blockchain transactions
-- 🕓 View full ownership history of a vehicle
-- 🔐 On-chain identity with wallet address (Metamask or mobile wallet)
-- ⚙️ Works with private Ethereum chains (Geth, Besu, Hardhat local node)
-- 📱 Mobile client friendly (Flutter, React Native)
+A NestJS backend API that interacts with a **Hyperledger Fabric network** (Org1 & Org2) to manage **vintage car ownership**, transfers, and historical tracking. Designed to be consumed by mobile apps and dashboards.
 
 ---
 
 ## 🛠 Tech Stack
 
 - NestJS (TypeScript)
-- Web3.js or Ethers.js
-- Smart Contracts (Solidity) deployed on private chain
+- Hyperledger Fabric SDK
 - MongoDB (off-chain metadata)
-- JWT Authentication (optional)
-- Swagger API documentation
+- REST API with Swagger
+- Docker (optional)
 
 ---
 
-## 📦 Installation
+## ⚙️ Blockchain Setup (Hyperledger Fabric)
 
-```bash
-git clone https://github.com/your-org/vintage-car-chain-api.git
-cd vintage-car-chain-api
-npm install
-npm run start:dev
+- Network includes:
+  - Org1, Org2 with their own peers
+  - Orderer node
+  - CouchDB (for chain state)
+- Channel: `vintagechannel`
+- Chaincode: `vintagecarcc`
+
+---
+
+## 🔐 Chaincode Sample (Go)
+
+```go
+type VintageCar struct {
+  VIN           string   `json:"vin"`
+  Brand         string   `json:"brand"`
+  Model         string   `json:"model"`
+  Year          int      `json:"year"`
+  CurrentOwner  string   `json:"currentOwner"`
+  PreviousOwners []string `json:"previousOwners"`
+}
